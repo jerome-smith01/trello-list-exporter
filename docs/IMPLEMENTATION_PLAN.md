@@ -22,7 +22,7 @@ Project defaults:
 - MVP 3 complete: CSV export with proper escaping and formula injection prevention; tests added.
 - MVP 4 complete: UX polish with loading states, success messages, empty list handling, and privacy notice.
 - MVP 5 complete: attachment metadata included in exports; Antigravity handoff generator for markdown export.
-- MVP 6 in progress: filtered exports respecting Trello's active filters and visibility state.
+- MVP 6 complete: filtered exports respecting Trello's active filters and visibility state.
 
 All core MVPs delivered. The Power-Up exports JSON, CSV, and Markdown with full metadata. MVP 6 adds filter awareness.
 

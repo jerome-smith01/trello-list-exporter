@@ -118,32 +118,51 @@
   async function resolveListCards(t) {
     let list = null;
     let cards = [];
+    let visibleCardIds = new Set();
 
     try {
       const listData = await t.list('name', 'id', 'cards', 'all');
       if (listData && Array.isArray(listData.cards)) {
         list = listData;
         cards = listData.cards;
-        return {list, cards};
       }
     } catch (error) {
       // Continue to fallback strategy.
     }
 
-    try {
-      cards = await t.cards('all');
-      list = await t.list('name', 'id').catch(function () {
-        return null;
-      });
-      return {list, cards: Array.isArray(cards) ? cards : []};
-    } catch (error) {
-      return {list: null, cards: []};
+    if (!list) {
+      try {
+        cards = await t.cards('all');
+        list = await t.list('name', 'id').catch(function () {
+          return null;
+        });
+        cards = Array.isArray(cards) ? cards : [];
+      } catch (error) {
+        return {list: null, cards: [], visibleCardIds};
+      }
     }
+
+    try {
+      const vCards = await t.cards('visible');
+      if (Array.isArray(vCards)) {
+        vCards.forEach(function(c) {
+          if (c && c.id) visibleCardIds.add(c.id);
+        });
+      }
+    } catch (e) {
+      // Fallback: just use closed state
+      cards.forEach(function(c) {
+        if (!c.closed) visibleCardIds.add(c.id);
+      });
+    }
+
+    return {list, cards, visibleCardIds};
   }
 
-  function createExportPayload(board, list, cards) {
+  function createExportPayload(board, list, cards, visibleOnly) {
     return {
       exportedAt: new Date().toISOString(),
+      visibleOnly: visibleOnly,
       board: {
         id: board && board.id ? board.id : '',
         name: board && board.name ? board.name : '',
@@ -272,17 +291,23 @@
     setStatusSuccess(`✓ Downloaded ${cards.length} card${cards.length === 1 ? '' : 's'} as CSV.`);
   }
 
+  function getLocalTimestamp() {
+    const now = new Date();
+    const pad = function (n) { return String(n).padStart(2, '0'); };
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+  }
+
   function buildCSVFilename(boardName, listName, format) {
     const board = safeFilenameComponent(boardName || 'board');
     const list = safeFilenameComponent(listName || 'list');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = getLocalTimestamp();
     return `${board}_${list}_${timestamp}.${format}`;
   }
 
   function buildHandoffFilename(boardName, listName) {
     const board = safeFilenameComponent(boardName || 'board');
     const list = safeFilenameComponent(listName || 'list');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = getLocalTimestamp();
     return `${board}_${list}_${timestamp}.md`;
   }
 
@@ -364,7 +389,7 @@
     return lines.join('\n');
   }
 
-  function createHandoffMarkdown(board, list, cards, totalCards) {
+  function createHandoffMarkdown(board, list, cards, totalCards, visibleOnly) {
     const lines = [];
     lines.push('# Trello List Export');
     lines.push('');
@@ -375,9 +400,10 @@
     lines.push(`- Exported: ${new Date().toISOString()}`);
     lines.push(`- Board: ${board && board.name ? board.name : 'Unknown Board'}`);
     lines.push(`- List: ${list && list.name ? list.name : 'Unknown List'}`);
+    lines.push(`- Visible only filter applied: ${visibleOnly ? 'Yes' : 'No'}`);
     lines.push(`- Cards exported: ${cards.length}`);
     if (typeof totalCards === 'number' && totalCards !== cards.length) {
-      lines.push(`- Cards on list: ${totalCards}`);
+      lines.push(`- Total cards in list: ${totalCards}`);
     }
     lines.push('');
     lines.push('---');
@@ -457,7 +483,7 @@
     downloadButton.disabled = true;
     downloadCSVButton.disabled = true;
 
-    const {list, cards} = await resolveListCards(t);
+    const {list, cards, visibleCardIds} = await resolveListCards(t);
     const resolvedListName = fillEmpty(
       (list && list.name) || effectiveListName,
       effectiveListName
@@ -479,7 +505,7 @@
     function getExportCards() {
       if (visibleOnlyCheckbox.checked) {
         return cards.filter(function (card) {
-          return !card.closed; // Filter out archived cards
+          return visibleCardIds.has(card.id);
         });
       }
       return cards;
@@ -514,7 +540,7 @@
 
     downloadButton.onclick = function () {
       const exportCards = getExportCards();
-      const payload = createExportPayload(resolvedBoard || {}, list, exportCards);
+      const payload = createExportPayload(resolvedBoard || {}, list, exportCards, visibleOnlyCheckbox.checked);
       downloadJSON(payload);
     };
 
@@ -526,7 +552,7 @@
 
     downloadMarkdownButton.onclick = function () {
       const exportCards = getExportCards();
-      const markdownContent = createHandoffMarkdown(resolvedBoard || {}, list, exportCards, cards.length);
+      const markdownContent = createHandoffMarkdown(resolvedBoard || {}, list, exportCards, cards.length, visibleOnlyCheckbox.checked);
       const filename = buildHandoffFilename(resolvedBoardName, resolvedListName);
       const blob = new Blob([markdownContent], {type: 'text/markdown;charset=utf-8'});
       const url = URL.createObjectURL(blob);
