@@ -8,6 +8,8 @@ This project starts as a public static GitHub Pages app. Early MVPs keep export 
 
 Planning and MVP 0 foundation.
 
+The public GitHub Pages root is served by `index.html` as a temporary landing page until the Trello Power-Up connector is implemented.
+
 ## Implementation Plan
 
 The living implementation artifact is maintained in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
