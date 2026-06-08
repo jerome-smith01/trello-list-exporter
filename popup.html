@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Popup shell for exporting a Trello list."
+    >
+    <title>Export list</title>
+    <link rel="icon" href="assets/power-up-icon.svg" type="image/svg+xml">
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f7f8fa;
+        --panel: #ffffff;
+        --panel-2: #f4f5f7;
+        --text: #172b4d;
+        --muted: #5e6c84;
+        --border: #dfe1e6;
+        --accent: #0c66e4;
+        --accent-strong: #0052cc;
+        --danger: #d60000;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #101418;
+          --panel: #1d232a;
+          --panel-2: #17202a;
+          --text: #f7f8fa;
+          --muted: #b6c2cf;
+          --border: #33404c;
+          --accent: #579dff;
+          --accent-strong: #85b8ff;
+          --danger: #ff5d5d;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.5;
+      }
+
+      main {
+        width: min(100%, 420px);
+        padding: 12px;
+      }
+
+      .panel {
+        display: grid;
+        gap: 14px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+      }
+
+      .header {
+        display: grid;
+        gap: 4px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.15rem;
+        line-height: 1.2;
+        letter-spacing: 0;
+      }
+
+      .subtle {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .meta {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--panel-2);
+      }
+
+      .meta-row {
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .value {
+        text-align: right;
+        font-size: 0.94rem;
+        font-weight: 600;
+        word-break: break-word;
+      }
+
+      .actions {
+        display: grid;
+        gap: 8px;
+      }
+
+      .button {
+        appearance: none;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: var(--panel-2);
+        color: var(--text);
+        font: inherit;
+        font-weight: 600;
+        line-height: 1.2;
+        padding: 10px 12px;
+        text-align: left;
+      }
+
+      .button[disabled] {
+        opacity: 0.75;
+        cursor: not-allowed;
+      }
+
+      .button-primary {
+        border-color: rgba(12, 102, 228, 0.35);
+        background: rgba(12, 102, 228, 0.12);
+      }
+
+      .button-warning {
+        border-color: rgba(214, 0, 0, 0.25);
+        background: rgba(214, 0, 0, 0.08);
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .link {
+        color: var(--accent-strong);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .link:hover {
+        text-decoration: underline;
+      }
+
+      .fallback {
+        display: none;
+      }
+
+      .no-trello .fallback {
+        display: block;
+      }
+
+      .no-trello .shell {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel shell" id="app">
+        <div class="header">
+          <h1 id="title">Export list</h1>
+          <p class="subtle" id="subtitle">Export controls will be added in MVP 2.</p>
+        </div>
+        <div class="meta" aria-live="polite">
+          <div class="meta-row">
+            <span class="label">Board</span>
+            <span class="value" id="board-name">Loading</span>
+          </div>
+          <div class="meta-row">
+            <span class="label">List</span>
+            <span class="value" id="list-name">Loading</span>
+          </div>
+          <div class="meta-row">
+            <span class="label">List ID</span>
+            <span class="value" id="list-id">Loading</span>
+          </div>
+        </div>
+        <div class="actions" aria-label="Export actions">
+          <button class="button button-primary" type="button" disabled>
+            JSON export available in MVP 2
+          </button>
+          <button class="button" type="button" disabled>
+            CSV export available in MVP 3
+          </button>
+          <button class="button button-warning" type="button" id="close-button">
+            Close
+          </button>
+        </div>
+        <p class="status">
+          Data export is planned to run in the browser only.
+        </p>
+      </section>
+      <section class="panel fallback" id="fallback">
+        <h1>Export list</h1>
+        <p class="subtle">
+          This popup shell must be opened from inside Trello after the Power-Up is enabled.
+        </p>
+      </section>
+    </main>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+    <script src="src/popup.js"></script>
+  </body>
+</html>

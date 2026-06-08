@@ -14,6 +14,12 @@ Project defaults:
 - Cost: free
 - Privacy posture: browser-only exports for early MVPs, no third-party MCP service, no backend until justified
 
+## Current Status
+
+- MVP 0 complete: repo, Pages workflow, docs, and security baseline are in place.
+- MVP 1 complete: the connector registers `list-actions` and opens a popup shell.
+- Next up: MVP 2 JSON export.
+
 ## Product Requirements
 
 The Power-Up must add an `Export list...` action to the Trello list `...` menu. Clicking the action opens a Trello popup that lets the user download the selected list as JSON or CSV.

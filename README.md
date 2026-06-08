@@ -6,9 +6,7 @@ This project starts as a public static GitHub Pages app. Early MVPs keep export 
 
 ## Status
 
-Planning and MVP 0 foundation.
-
-The public GitHub Pages root is served by `index.html` as a temporary landing page until the Trello Power-Up connector is implemented.
+MVP 1 is in place: the GitHub Pages root now acts as the Trello Power-Up connector, and `popup.html` is the shell opened from the list action.
 
 ## Implementation Plan
 
@@ -27,3 +25,7 @@ The living implementation artifact is maintained in [docs/IMPLEMENTATION_PLAN.md
 This repo is planned to deploy through GitHub Actions Pages. Once the GitHub repository exists, enable Pages with **Source: GitHub Actions** in repository settings.
 
 The default Pages URL should be `https://jerome-smith01.github.io/trello-list-exporter/`. A custom `goodplusfast.com` subdomain can be added after the default deployment is working.
+
+## Trello Setup
+
+Enable the `list-actions` capability in the Trello Power-Up admin portal and point the connector URL at the GitHub Pages root. Use the icon in `assets/power-up-icon.svg` when configuring the Power-Up.

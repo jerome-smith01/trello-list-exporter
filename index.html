@@ -5,28 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="Privacy-first Trello Power-Up for exporting Trello lists to JSON and CSV."
+      content="Trello Power-Up connector for the Trello List Exporter."
     >
     <title>Trello List Exporter</title>
+    <link rel="icon" href="assets/power-up-icon.svg" type="image/svg+xml">
     <style>
       :root {
         color-scheme: light dark;
-        --bg: #f7f8fa;
+        --bg: #f5f7fb;
         --panel: #ffffff;
+        --panel-strong: #f0f4ff;
         --text: #172b4d;
         --muted: #5e6c84;
         --border: #dfe1e6;
         --accent: #0c66e4;
+        --accent-strong: #0052cc;
+        --shadow: 0 12px 32px rgba(9, 30, 66, 0.08);
       }
 
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg: #101418;
-          --panel: #1d2125;
-          --text: #f4f5f7;
+          --bg: #0f141a;
+          --panel: #1d232a;
+          --panel-strong: #17202a;
+          --text: #f7f8fa;
           --muted: #b6c2cf;
-          --border: #38414a;
+          --border: #33404c;
           --accent: #579dff;
+          --accent-strong: #85b8ff;
+          --shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
         }
       }
 
@@ -37,7 +44,9 @@
       body {
         margin: 0;
         min-height: 100vh;
-        background: var(--bg);
+        background:
+          radial-gradient(circle at top, rgba(12, 102, 228, 0.08), transparent 34%),
+          var(--bg);
         color: var(--text);
         font-family:
           -apple-system,
@@ -48,82 +57,173 @@
       }
 
       main {
-        width: min(760px, calc(100% - 32px));
+        width: min(860px, calc(100% - 32px));
         margin: 0 auto;
-        padding: 56px 0;
+        padding: 48px 0 40px;
       }
 
-      .panel {
+      .shell {
+        display: grid;
+        gap: 16px;
         background: var(--panel);
         border: 1px solid var(--border);
         border-radius: 8px;
         padding: 28px;
+        box-shadow: var(--shadow);
+      }
+
+      .eyebrow {
+        margin: 0;
+        color: var(--accent);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
       }
 
       h1 {
-        margin: 0 0 12px;
-        font-size: clamp(2rem, 6vw, 3.5rem);
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 3.25rem);
         line-height: 1.05;
         letter-spacing: 0;
       }
 
-      p {
-        margin: 0 0 16px;
+      .summary {
+        margin: 0;
         color: var(--muted);
         font-size: 1rem;
+        max-width: 60ch;
       }
 
-      .status {
+      .status-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .badge {
         display: inline-flex;
         align-items: center;
         min-height: 32px;
-        margin: 8px 0 20px;
         padding: 5px 10px;
         border: 1px solid var(--border);
         border-radius: 4px;
+        background: var(--panel-strong);
         color: var(--text);
         font-size: 0.9rem;
         font-weight: 600;
       }
 
-      a {
-        color: var(--accent);
-        font-weight: 600;
+      .badge[data-tone="ok"] {
+        border-color: rgba(82, 196, 26, 0.4);
+        color: #1f7a1f;
       }
 
-      ul {
-        margin: 18px 0 0;
-        padding-left: 20px;
+      .badge[data-tone="warning"] {
+        border-color: rgba(255, 171, 0, 0.45);
+        color: #8a5a00;
       }
 
-      li {
-        margin: 8px 0;
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        background: var(--panel);
+      }
+
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+        line-height: 1.25;
+      }
+
+      .card p,
+      .note {
+        margin: 0;
         color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .note {
+        padding-top: 2px;
+      }
+
+      .link {
+        color: var(--accent-strong);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .link:hover {
+        text-decoration: underline;
+      }
+
+      .status-message {
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: rgba(87, 157, 255, 0.08);
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+
+      .fallback {
+        display: none;
+      }
+
+      .has-fallback .fallback {
+        display: block;
+      }
+
+      .has-fallback .trello-only {
+        display: none;
       }
     </style>
   </head>
   <body>
     <main>
-      <section class="panel" aria-labelledby="page-title">
+      <section class="shell" aria-labelledby="page-title">
+        <p class="eyebrow">Trello Power-Up connector</p>
         <h1 id="page-title">Trello List Exporter</h1>
-        <p>
-          A privacy-first Trello Power-Up for exporting list cards to JSON and CSV.
+        <p class="summary">
+          A privacy-first Power-Up shell for exporting Trello lists to JSON and CSV.
         </p>
-        <div class="status">MVP 0: planning and project foundation</div>
-        <p>
-          The Power-Up is not registered yet. This page exists so GitHub Pages has
-          a stable HTTPS root while the implementation is built.
-        </p>
-        <ul>
-          <li>Exports will run in the browser for early MVPs.</li>
-          <li>No Trello board data should be committed to this public repository.</li>
-          <li>No backend or third-party data processor is planned for the initial build.</li>
-        </ul>
-        <p>
-          Project details are tracked in
-          <a href="docs/IMPLEMENTATION_PLAN.md">the implementation plan</a>.
+        <div class="status-row">
+          <div id="status-badge" class="badge" data-tone="neutral">Loading connector</div>
+          <div class="badge">MVP 1: list actions and popup shell</div>
+        </div>
+        <div id="fallback" class="status-message fallback">
+          Open this site inside Trello after enabling the Power-Up to use the list
+          export action.
+        </div>
+        <div class="grid trello-only">
+          <article class="card">
+            <h2>Current capability</h2>
+            <p id="capability-copy">
+              The list menu action opens a popup shell. Export logic will arrive in MVP 2.
+            </p>
+          </article>
+          <article class="card">
+            <h2>Project state</h2>
+            <p>
+              The implementation plan stays in
+              <a class="link" href="docs/IMPLEMENTATION_PLAN.md">docs/IMPLEMENTATION_PLAN.md</a>.
+            </p>
+          </article>
+        </div>
+        <p class="note trello-only">
+          The popup shell is at <a class="link" href="popup.html">popup.html</a>.
         </p>
       </section>
     </main>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+    <script src="src/connector.js"></script>
   </body>
 </html>
