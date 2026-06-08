@@ -8,8 +8,11 @@
   const listIdEl = document.getElementById('list-id');
   const cardCountEl = document.getElementById('card-count');
   const downloadButton = document.getElementById('download-json-button');
+  const downloadCSVButton = document.getElementById('download-csv-button');
+  const downloadMarkdownButton = document.getElementById('download-markdown-button');
   const closeButton = document.getElementById('close-button');
   const statusEl = document.getElementById('status');
+  const visibleOnlyCheckbox = document.getElementById('visible-only-checkbox');
 
   function setFallback(message) {
     document.body.classList.add('no-trello');
@@ -24,6 +27,24 @@
     statusEl.textContent = message;
   }
 
+  function setStatusLoading(message) {
+    statusEl.textContent = message;
+    statusEl.className = 'status loading';
+  }
+
+  function setStatusSuccess(message) {
+    statusEl.textContent = message;
+    statusEl.className = 'status success';
+    setTimeout(function () {
+      statusEl.className = 'status';
+    }, 2500);
+  }
+
+  function setStatusError(message) {
+    statusEl.textContent = message;
+    statusEl.className = 'status error';
+  }
+
   function safeFilenameComponent(value) {
     return String(value || '')
       .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '')
@@ -33,10 +54,7 @@
   }
 
   function buildFilename(boardName, listName) {
-    const board = safeFilenameComponent(boardName || 'board');
-    const list = safeFilenameComponent(listName || 'list');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    return `${board}_${list}_${timestamp}.json`;
+    return buildCSVFilename(boardName, listName, 'json');
   }
 
   function normalizeLabel(label) {
@@ -71,6 +89,16 @@
         ? card.members.map(normalizeMember)
         : Array.isArray(card.idMembers)
         ? card.idMembers.slice()
+        : [],
+      attachments: Array.isArray(card.attachments)
+        ? card.attachments.map(function (attachment) {
+            return {
+              id: attachment && attachment.id ? attachment.id : '',
+              name: attachment && attachment.name ? attachment.name : '',
+              url: attachment && attachment.url ? attachment.url : '',
+              mimeType: attachment && attachment.mimeType ? attachment.mimeType : '',
+            };
+          })
         : [],
       start: card.start || null,
       due: card.due || null,
@@ -128,12 +156,212 @@
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = buildFilename(payload.board.name, payload.list.name);
+    link.download = buildCSVFilename(payload.board.name, payload.list.name, 'json');
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    setStatus(`Downloaded ${payload.cards.length} cards as JSON.`);
+    setStatusSuccess(`✓ Downloaded ${payload.cards.length} card${payload.cards.length === 1 ? '' : 's'} as JSON.`);
+  }
+
+  function escapeCSVCell(value) {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    const str = String(value);
+    if (/^[=+\-@]/.test(str)) {
+      return `'${str}`;
+    }
+    if (/["\n\r,]/.test(str)) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  }
+
+  function buildCSVRow(values) {
+    return values.map(escapeCSVCell).join(',');
+  }
+
+  function createCSVContent(board, list, cards) {
+    const rows = [];
+    const headers = [
+      'Card ID',
+      'Card Short ID',
+      'Card Name',
+      'Description',
+      'Labels',
+      'Members',
+      'Start Date',
+      'Due Date',
+      'Due Completion',
+      'Card URL',
+      'Position',
+      'Last Activity',
+    ];
+    rows.push(buildCSVRow(headers));
+    cards.forEach(function (card) {
+      const labels = Array.isArray(card.labels)
+        ? card.labels
+            .map(function (label) {
+              return label && label.name ? label.name : '';
+            })
+            .join(';')
+        : '';
+      const members = Array.isArray(card.members)
+        ? card.members
+            .map(function (member) {
+              return member && member.username ? member.username : '';
+            })
+            .join(';')
+        : '';
+      const row = [
+        card.id || '',
+        card.idShort || '',
+        card.name || '',
+        card.desc || '',
+        labels,
+        members,
+        card.start || '',
+        card.due || '',
+        card.dueComplete ? 'Yes' : 'No',
+        card.url || '',
+        card.pos || '',
+        card.dateLastActivity || '',
+      ];
+      rows.push(buildCSVRow(row));
+    });
+    const csvContent = rows.join('\n');
+    const bomChar = '\uFEFF';
+    return bomChar + csvContent;
+  }
+
+  function downloadCSV(board, list, cards, filename) {
+    const csvContent = createCSVContent(board, list, cards);
+    const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setStatusSuccess(`✓ Downloaded ${cards.length} card${cards.length === 1 ? '' : 's'} as CSV.`);
+  }
+
+  function buildCSVFilename(boardName, listName, format) {
+    const board = safeFilenameComponent(boardName || 'board');
+    const list = safeFilenameComponent(listName || 'list');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    return `${board}_${list}_${timestamp}.${format}`;
+  }
+
+  function buildHandoffFilename(boardName, listName) {
+    const board = safeFilenameComponent(boardName || 'board');
+    const list = safeFilenameComponent(listName || 'list');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    return `handoff_${board}_${list}_${timestamp}.md`;
+  }
+
+  function formatCardForHandoff(card) {
+    const lines = [];
+    lines.push(`## ${card.name || 'Untitled Card'}`);
+    lines.push('');
+    if (card.labels && card.labels.length > 0) {
+      const labelNames = card.labels
+        .map(function (label) {
+          return label && label.name ? label.name : '';
+        })
+        .filter(Boolean);
+      if (labelNames.length > 0) {
+        lines.push(`**Labels:** ${labelNames.join(', ')}`);
+      }
+    }
+    if (card.due) {
+      const dueDate = new Date(card.due);
+      const dueDateStr = dueDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+      lines.push(`**Due:** ${dueDateStr}${card.dueComplete ? ' (Complete)' : ''}`);
+    }
+    lines.push('');
+    if (card.desc && card.desc.trim()) {
+      lines.push('### Description');
+      lines.push(card.desc);
+      lines.push('');
+    }
+    if (card.members && card.members.length > 0) {
+      const memberNames = card.members
+        .map(function (member) {
+          return member && member.fullName
+            ? member.fullName
+            : member.username || '';
+        })
+        .filter(Boolean);
+      if (memberNames.length > 0) {
+        lines.push('### Assigned To');
+        memberNames.forEach(function (name) {
+          lines.push(`- ${name}`);
+        });
+        lines.push('');
+      }
+    }
+    if (card.attachments && card.attachments.length > 0) {
+      lines.push('### Attachments');
+      card.attachments.forEach(function (attachment) {
+        if (attachment.url) {
+          lines.push(`- [${attachment.name}](${attachment.url})`);
+        } else {
+          lines.push(`- ${attachment.name}`);
+        }
+      });
+      lines.push('');
+    }
+    if (card.url) {
+      lines.push(`[View in Trello](${card.url})`);
+      lines.push('');
+    }
+    return lines.join('\n');
+  }
+
+  function createHandoffMarkdown(board, list, cards) {
+    const lines = [];
+    lines.push('# Trello List Export - Antigravity Handoff');
+    lines.push('');
+    lines.push('## Export Metadata');
+    lines.push('');
+    lines.push(`**Exported:** ${new Date().toISOString()}`);
+    lines.push(`**Board:** ${board && board.name ? board.name : 'Unknown Board'}`);
+    lines.push(`**List:** ${list && list.name ? list.name : 'Unknown List'}`);
+    lines.push(`**Total Cards:** ${cards.length}`);
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+    lines.push('## Privacy & Usage');
+    lines.push('');
+    lines.push(
+      'This handoff was generated locally in your browser. Share only with authorized team members.'
+    );
+    lines.push('');
+    if (cards.length > 0) {
+      lines.push('## Cards');
+      lines.push('');
+      cards.forEach(function (card, index) {
+        if (index > 0) {
+          lines.push('---');
+          lines.push('');
+        }
+        lines.push(formatCardForHandoff(card));
+      });
+    } else {
+      lines.push('## No Cards');
+      lines.push('');
+      lines.push('This list contains no cards to export.');
+      lines.push('');
+    }
+    return lines.join('\n');
   }
 
   async function render() {
@@ -184,6 +412,7 @@
 
     setStatus('Fetching list details…');
     downloadButton.disabled = true;
+    downloadCSVButton.disabled = true;
 
     const {list, cards} = await resolveListCards(t);
     const resolvedListName = fillEmpty(
@@ -197,24 +426,117 @@
 
     boardNameEl.textContent = resolvedBoardName;
     listNameEl.textContent = resolvedListName;
-    cardCountEl.textContent = String(cards.length);
-
+    
     if (!list) {
-      setStatus('Could not resolve list details from Trello. JSON export is unavailable.');
+      setStatusError('Error: Could not load list data from Trello.');
       return;
     }
-
-    setStatus(`Ready to export ${cards.length} card${cards.length === 1 ? '' : 's'}.`);
-    downloadButton.disabled = false;
+    
+    // Filter cards based on checkbox
+    function getExportCards() {
+      if (visibleOnlyCheckbox.checked) {
+        return cards.filter(function (card) {
+          return !card.closed; // Filter out archived cards
+        });
+      }
+      return cards;
+    }
+    
+    function updateCardCount() {
+      const exportCards = getExportCards();
+      const totalCards = cards.length;
+      const archivedCount = totalCards - exportCards.length;
+      
+      if (visibleOnlyCheckbox.checked && archivedCount > 0) {
+        cardCountEl.textContent = String(exportCards.length) + ' (' + String(totalCards) + ' total)';
+      } else {
+        cardCountEl.textContent = String(totalCards);
+      }
+      
+      if (exportCards.length === 0) {
+        setStatus('No cards to export.');
+        downloadButton.disabled = true;
+        downloadCSVButton.disabled = true;
+        downloadMarkdownButton.disabled = true;
+      } else {
+        setStatus(`Ready to export ${exportCards.length} card${exportCards.length === 1 ? '' : 's'}.`);
+        downloadButton.disabled = false;
+        downloadCSVButton.disabled = false;
+        downloadMarkdownButton.disabled = false;
+      }
+    }
+    
+    visibleOnlyCheckbox.addEventListener('change', updateCardCount);
+    updateCardCount();
 
     downloadButton.onclick = function () {
-      const payload = createExportPayload(resolvedBoard || {}, list, cards);
+      const exportCards = getExportCards();
+      const payload = createExportPayload(resolvedBoard || {}, list, exportCards);
       downloadJSON(payload);
+    };
+
+    downloadCSVButton.onclick = function () {
+      const exportCards = getExportCards();
+      const filename = buildCSVFilename(resolvedBoardName, resolvedListName, 'csv');
+      downloadCSV(resolvedBoard || {}, list, exportCards, filename);
+    };
+
+    downloadMarkdownButton.onclick = function () {
+      const exportCards = getExportCards();
+      const markdownContent = createHandoffMarkdown(resolvedBoard || {}, list, exportCards);
+      const filename = buildHandoffFilename(resolvedBoardName, resolvedListName);
+      const blob = new Blob([markdownContent], {type: 'text/markdown;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStatusSuccess(`\u2713 Downloaded ${exportCards.length} card${exportCards.length === 1 ? '' : 's'} as markdown.`);
     };
 
     closeButton.onclick = function () {
       t.closePopup();
     };
+
+    // Tooltip handling for mobile touch - all buttons
+    function setupTooltip(buttonElement) {
+      var wrapper = buttonElement.parentElement;
+      
+      buttonElement.addEventListener('touchstart', function (e) {
+        e.preventDefault();
+        var isShowing = wrapper.classList.contains('show-tooltip');
+        if (isShowing) {
+          // If tooltip is visible, proceed with click
+          buttonElement.click();
+          wrapper.classList.remove('show-tooltip');
+        } else {
+          // Show tooltip on first tap
+          wrapper.classList.add('show-tooltip');
+        }
+      }, { passive: false });
+
+      buttonElement.addEventListener('click', function () {
+        wrapper.classList.remove('show-tooltip');
+      });
+    }
+    
+    setupTooltip(downloadButton);
+    setupTooltip(downloadCSVButton);
+    setupTooltip(downloadMarkdownButton);
+
+    // Close tooltip when clicking elsewhere
+    document.addEventListener('click', function (e) {
+      var buttons = [downloadButton, downloadCSVButton, downloadMarkdownButton];
+      buttons.forEach(function (btn) {
+        var wrapper = btn.parentElement;
+        if (!wrapper.contains(e.target)) {
+          wrapper.classList.remove('show-tooltip');
+        }
+      });
+    });
 
     await t.sizeTo(app);
   }

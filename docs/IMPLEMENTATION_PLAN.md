@@ -18,8 +18,13 @@ Project defaults:
 
 - MVP 0 complete: repo, Pages workflow, docs, and security baseline are in place.
 - MVP 1 complete: the connector registers `list-actions` and opens a popup shell.
-- MVP 2 complete: the popup now exports the selected list to JSON from the browser.
-- Next up: MVP 3 CSV export and UX polish.
+- MVP 2 complete: the popup exports the selected list to JSON from the browser.
+- MVP 3 complete: CSV export with proper escaping and formula injection prevention; tests added.
+- MVP 4 complete: UX polish with loading states, success messages, empty list handling, and privacy notice.
+- MVP 5 complete: attachment metadata included in exports; Antigravity handoff generator for markdown export.
+- MVP 6 in progress: filtered exports respecting Trello's active filters and visibility state.
+
+All core MVPs delivered. The Power-Up exports JSON, CSV, and Markdown with full metadata. MVP 6 adds filter awareness.
 
 ## Product Requirements
 
@@ -208,7 +213,32 @@ Acceptance criteria:
 - Exported metadata identifies screenshot attachments where Trello exposes enough information.
 - Handoff markdown is usable as direct AI development context.
 
-### MVP 6: REST API Authorization Verification
+### MVP 6: Filtered Exports
+
+Recommended Codex model: `GPT-5.4-Mini`, Medium reasoning.
+
+Deliverables:
+
+- Add checkbox to export only visible cards (respecting Trello filters and hidden state).
+- Filter out archived cards when "Visible only" is checked.
+- Update card count display to show (visible/total) when filter is active.
+- Ensure all export formats (JSON, CSV, Markdown) respect the filter.
+
+Security checklist:
+
+- No additional data exposure from filtering.
+- Filter state must not be persisted or logged.
+- User retains control over what is exported via checkbox.
+
+Acceptance criteria:
+
+- Checkbox labeled "Visible only" appears in the popup.
+- Unchecking filters exports all cards including archived.
+- Checking filters shows only non-archived cards.
+- All three export formats respect the filter state.
+- Card count updates to reflect filter state.
+
+### MVP 7: REST API Authorization Verification
 
 Recommended Codex model: `GPT-5.5`, High reasoning.
 
@@ -230,7 +260,7 @@ Acceptance criteria:
 - Decision record exists documenting whether REST API authorization is needed.
 - If auth is needed, implementation risks and scope are documented before code is written.
 
-### MVP 7: Public Power-Up Readiness
+### MVP 8: Public Power-Up Readiness
 
 Recommended Codex model: `GPT-5.5`, High reasoning.
 
@@ -254,7 +284,7 @@ Acceptance criteria:
 - Project can be reviewed against Trello public Power-Up submission expectations.
 - Remaining public launch blockers are documented.
 
-### MVP 8: Optional Private Local Bridge
+### MVP 9: Optional Private Local Bridge
 
 Recommended Codex model: `GPT-5.5`, High reasoning.
 
