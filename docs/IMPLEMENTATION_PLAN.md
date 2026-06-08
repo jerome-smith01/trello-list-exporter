@@ -200,10 +200,6 @@ Deliverables:
 
 - Include attachment metadata exposed by Trello, such as name, URL, MIME type, and preview flags when available.
 - Add `handoff.md` generation for Antigravity workflows.
-- Use the same filename convention as CSV and JSON exports, with a `.md` extension.
-- Set the generated Markdown title to `Trello List Export`.
-- Export metadata must be rendered as a bullet list inside the Markdown file.
-- Review Trello list width adjustment techniques for filter-aware UI sizing.
 - Structure handoff content around title, status/list, labels, description, expected behavior, actual behavior, steps to reproduce, attachments, acceptance criteria, and Trello URL.
 
 Security checklist:
@@ -215,9 +211,6 @@ Security checklist:
 Acceptance criteria:
 
 - Exported metadata identifies screenshot attachments where Trello exposes enough information.
-- Generated Markdown file uses the same filename style as JSON/CSV, but with a `.md` extension.
-- The Markdown title reads `Trello List Export`.
-- Export metadata appears as a bullet list in the generated Markdown.
 - Handoff markdown is usable as direct AI development context.
 
 ### MVP 6: Filtered Exports

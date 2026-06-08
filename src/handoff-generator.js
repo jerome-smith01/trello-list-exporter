@@ -10,7 +10,9 @@ function normalizeAttachment(attachment) {
     url: attachment && attachment.url ? attachment.url : '',
     mimeType: attachment && attachment.mimeType ? attachment.mimeType : '',
     isUpload: attachment && attachment.isUpload ? attachment.isUpload : false,
-    bytes: attachment && attachment.bytes ? attachment.bytes : null,
+    bytes:
+      attachment && typeof attachment.bytes === 'number' ? attachment.bytes : null,
+    preview: attachment && attachment.preview ? attachment.preview : null,
   };
 }
 
@@ -20,11 +22,6 @@ function formatCardForHandoff(card) {
   // Card title
   lines.push(`## ${card.name || 'Untitled Card'}`);
   lines.push('');
-
-  // Status / List
-  if (card.list && card.list.name) {
-    lines.push(`**Status:** ${card.list.name}`);
-  }
 
   // Labels
   if (Array.isArray(card.labels) && card.labels.length > 0) {
@@ -49,6 +46,10 @@ function formatCardForHandoff(card) {
     lines.push(
       `**Due:** ${dueDateStr}${card.dueComplete ? ' (Complete)' : ''}`
     );
+  }
+
+  if (card.url) {
+    lines.push(`**Trello URL:** ${card.url}`);
   }
 
   lines.push('');
@@ -81,38 +82,53 @@ function formatCardForHandoff(card) {
     lines.push('### Attachments');
     card.attachments.forEach(function (attachment) {
       const normalizedAttachment = normalizeAttachment(attachment);
-      if (normalizedAttachment.url) {
-        lines.push(`- [${normalizedAttachment.name}](${normalizedAttachment.url})`);
+      const attachmentName = normalizedAttachment.name || 'Attachment';
+      const attachmentUrl = normalizedAttachment.url || '';
+      const attachmentMime = normalizedAttachment.mimeType || '';
+      const attachmentIsUpload = normalizedAttachment.isUpload ? 'Yes' : 'No';
+      const attachmentPreview = normalizedAttachment.preview ? 'Yes' : 'No';
+
+      if (attachmentUrl) {
+        lines.push(`- [${attachmentName}](${attachmentUrl})`);
       } else {
-        lines.push(`- ${normalizedAttachment.name}`);
+        lines.push(`- ${attachmentName}`);
+      }
+      if (attachmentMime || attachment.isUpload || attachment.preview || normalizedAttachment.bytes !== null) {
+        if (attachmentMime) {
+          lines.push(`  - MIME type: ${attachmentMime}`);
+        }
+        lines.push(`  - Uploaded: ${attachmentIsUpload}`);
+        lines.push(`  - Preview available: ${attachmentPreview}`);
+        if (normalizedAttachment.bytes !== null) {
+          lines.push(`  - Size: ${normalizedAttachment.bytes} bytes`);
+        }
       }
     });
-    lines.push('');
-  }
-
-  // Card URL
-  if (card.url) {
-    lines.push(`[View in Trello](${card.url})`);
     lines.push('');
   }
 
   return lines.join('\n');
 }
 
-function createHandoffMarkdown(board, list, cards) {
+function createHandoffMarkdown(board, list, cards, totalCards) {
   const lines = [];
 
   // Header
-  lines.push(`# Trello List Export - Antigravity Handoff`);
+  lines.push('# Trello List Export');
+  lines.push('');
+  lines.push('## Antigravity Handoff');
   lines.push('');
 
   // Metadata
   lines.push('## Export Metadata');
   lines.push('');
-  lines.push(`**Exported:** ${new Date().toISOString()}`);
-  lines.push(`**Board:** ${board && board.name ? board.name : 'Unknown Board'}`);
-  lines.push(`**List:** ${list && list.name ? list.name : 'Unknown List'}`);
-  lines.push(`**Total Cards:** ${cards.length}`);
+  lines.push(`- Exported: ${new Date().toISOString()}`);
+  lines.push(`- Board: ${board && board.name ? board.name : 'Unknown Board'}`);
+  lines.push(`- List: ${list && list.name ? list.name : 'Unknown List'}`);
+  lines.push(`- Cards exported: ${cards.length}`);
+  if (typeof totalCards === 'number' && totalCards !== cards.length) {
+    lines.push(`- Cards on list: ${totalCards}`);
+  }
   lines.push('');
 
   // Privacy notice
@@ -173,7 +189,7 @@ function buildHandoffFilename(boardName, listName) {
   const board = safeComponent(boardName || 'board');
   const list = safeComponent(listName || 'list');
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  return `handoff_${board}_${list}_${timestamp}.md`;
+  return `${board}_${list}_${timestamp}.md`;
 }
 
 if (typeof module !== 'undefined' && module.exports) {

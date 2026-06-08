@@ -97,6 +97,12 @@
               name: attachment && attachment.name ? attachment.name : '',
               url: attachment && attachment.url ? attachment.url : '',
               mimeType: attachment && attachment.mimeType ? attachment.mimeType : '',
+              isUpload: !!(attachment && attachment.isUpload),
+              bytes:
+                attachment && typeof attachment.bytes === 'number'
+                  ? attachment.bytes
+                  : null,
+              preview: attachment && attachment.preview ? attachment.preview : null,
             };
           })
         : [],
@@ -197,6 +203,7 @@
       'Card URL',
       'Position',
       'Last Activity',
+      'Attachments',
     ];
     rows.push(buildCSVRow(headers));
     cards.forEach(function (card) {
@@ -214,6 +221,21 @@
             })
             .join(';')
         : '';
+      const attachments = Array.isArray(card.attachments)
+        ? card.attachments
+            .map(function (attachment) {
+              if (!attachment) {
+                return '';
+              }
+              const label = attachment.name || attachment.url || '';
+              if (attachment.name && attachment.url) {
+                return `${attachment.name} <${attachment.url}>`;
+              }
+              return label;
+            })
+            .filter(Boolean)
+            .join('; ')
+        : '';
       const row = [
         card.id || '',
         card.idShort || '',
@@ -227,6 +249,7 @@
         card.url || '',
         card.pos || '',
         card.dateLastActivity || '',
+        attachments,
       ];
       rows.push(buildCSVRow(row));
     });
@@ -260,7 +283,7 @@
     const board = safeFilenameComponent(boardName || 'board');
     const list = safeFilenameComponent(listName || 'list');
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    return `handoff_${board}_${list}_${timestamp}.md`;
+    return `${board}_${list}_${timestamp}.md`;
   }
 
   function formatCardForHandoff(card) {
@@ -285,6 +308,9 @@
         day: 'numeric',
       });
       lines.push(`**Due:** ${dueDateStr}${card.dueComplete ? ' (Complete)' : ''}`);
+    }
+    if (card.url) {
+      lines.push(`**Trello URL:** ${card.url}`);
     }
     lines.push('');
     if (card.desc && card.desc.trim()) {
@@ -311,31 +337,48 @@
     if (card.attachments && card.attachments.length > 0) {
       lines.push('### Attachments');
       card.attachments.forEach(function (attachment) {
-        if (attachment.url) {
-          lines.push(`- [${attachment.name}](${attachment.url})`);
+        const attachmentName = attachment && attachment.name ? attachment.name : 'Attachment';
+        const attachmentUrl = attachment && attachment.url ? attachment.url : '';
+        const attachmentMime = attachment && attachment.mimeType ? attachment.mimeType : '';
+        const attachmentIsUpload = attachment && attachment.isUpload ? 'Yes' : 'No';
+        const attachmentPreview = attachment && attachment.preview ? 'Yes' : 'No';
+
+        if (attachmentUrl) {
+          lines.push(`- [${attachmentName}](${attachmentUrl})`);
         } else {
-          lines.push(`- ${attachment.name}`);
+          lines.push(`- ${attachmentName}`);
+        }
+        if (attachmentMime || attachmentIsUpload || attachmentPreview) {
+          if (attachmentMime) {
+            lines.push(`  - MIME type: ${attachmentMime}`);
+          }
+          lines.push(`  - Uploaded: ${attachmentIsUpload}`);
+          lines.push(`  - Preview available: ${attachmentPreview}`);
+          if (attachment && attachment.bytes !== null) {
+            lines.push(`  - Size: ${attachment.bytes} bytes`);
+          }
         }
       });
-      lines.push('');
-    }
-    if (card.url) {
-      lines.push(`[View in Trello](${card.url})`);
       lines.push('');
     }
     return lines.join('\n');
   }
 
-  function createHandoffMarkdown(board, list, cards) {
+  function createHandoffMarkdown(board, list, cards, totalCards) {
     const lines = [];
-    lines.push('# Trello List Export - Antigravity Handoff');
+    lines.push('# Trello List Export');
+    lines.push('');
+    lines.push('## Antigravity Handoff');
     lines.push('');
     lines.push('## Export Metadata');
     lines.push('');
-    lines.push(`**Exported:** ${new Date().toISOString()}`);
-    lines.push(`**Board:** ${board && board.name ? board.name : 'Unknown Board'}`);
-    lines.push(`**List:** ${list && list.name ? list.name : 'Unknown List'}`);
-    lines.push(`**Total Cards:** ${cards.length}`);
+    lines.push(`- Exported: ${new Date().toISOString()}`);
+    lines.push(`- Board: ${board && board.name ? board.name : 'Unknown Board'}`);
+    lines.push(`- List: ${list && list.name ? list.name : 'Unknown List'}`);
+    lines.push(`- Cards exported: ${cards.length}`);
+    if (typeof totalCards === 'number' && totalCards !== cards.length) {
+      lines.push(`- Cards on list: ${totalCards}`);
+    }
     lines.push('');
     lines.push('---');
     lines.push('');
@@ -483,7 +526,7 @@
 
     downloadMarkdownButton.onclick = function () {
       const exportCards = getExportCards();
-      const markdownContent = createHandoffMarkdown(resolvedBoard || {}, list, exportCards);
+      const markdownContent = createHandoffMarkdown(resolvedBoard || {}, list, exportCards, cards.length);
       const filename = buildHandoffFilename(resolvedBoardName, resolvedListName);
       const blob = new Blob([markdownContent], {type: 'text/markdown;charset=utf-8'});
       const url = URL.createObjectURL(blob);
