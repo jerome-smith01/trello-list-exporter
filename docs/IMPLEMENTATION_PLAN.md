@@ -7,7 +7,7 @@ This is the living implementation artifact for `trello-list-exporter`, a privacy
 Project defaults:
 
 - GitHub repo name: `trello-list-exporter`
-- Initial visibility: private
+- Repository visibility: public
 - Hosting: GitHub Pages
 - Deployment: GitHub Actions
 - Architecture: Power-Up first
@@ -19,6 +19,8 @@ Project defaults:
 The Power-Up must add an `Export list...` action to the Trello list `...` menu. Clicking the action opens a Trello popup that lets the user download the selected list as JSON or CSV.
 
 Early MVPs must keep all export processing in the browser. Trello board data must not be sent to a project backend or any third-party data processor. REST API authorization is deferred until a later verification MVP proves that the Trello Power-Up client library is insufficient.
+
+The source repository is public. The project must therefore treat all tracked files as publishable artifacts and must never include private Trello board data, API tokens, screenshots from private boards, or local configuration with secrets.
 
 Initial exported card fields:
 
@@ -272,7 +274,7 @@ Acceptance criteria:
 Manual GitHub repository settings:
 
 - Repository name: `trello-list-exporter`
-- Visibility: Private
+- Visibility: Public
 - Initialize with README: No
 - Add `.gitignore`: No
 - Add license: No initially
@@ -292,6 +294,14 @@ Enable GitHub Pages:
 - Expected URL: `https://<github-user>.github.io/trello-list-exporter/`
 
 Use the GitHub Pages HTTPS URL as the Trello Power-Up connector base once MVP 1 exists.
+
+Optional custom domain path:
+
+- Use a subdomain such as `trello-export.goodplusfast.com`.
+- Add the custom domain in GitHub Pages settings after the default Pages deployment works.
+- Add the required DNS record with the domain provider or DNS host.
+- Keep Enforce HTTPS enabled once GitHub provisions the certificate.
+- Add a `CNAME` file in the deployed site when the custom domain is finalized.
 
 ## Test Plan
 
@@ -328,9 +338,9 @@ Security QA:
 
 ## Assumptions
 
-- The repository starts private and may become public later.
+- The repository is public, but all Trello data, credentials, exports, and local configuration remain private and untracked.
 - The Power-Up remains free.
-- GitHub Pages is sufficient for the private MVP.
+- GitHub Pages is sufficient for the initial MVP.
 - No backend is introduced before a documented security review.
 - REST API authorization is deferred until MVP 6.
 - Antigravity sync is handled later through a private local bridge, not a third-party MCP provider.
