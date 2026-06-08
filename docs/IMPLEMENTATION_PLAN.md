@@ -18,7 +18,8 @@ Project defaults:
 
 - MVP 0 complete: repo, Pages workflow, docs, and security baseline are in place.
 - MVP 1 complete: the connector registers `list-actions` and opens a popup shell.
-- Next up: MVP 2 JSON export.
+- MVP 2 complete: the popup now exports the selected list to JSON from the browser.
+- Next up: MVP 3 CSV export and UX polish.
 
 ## Product Requirements
 

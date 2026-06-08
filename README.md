@@ -6,7 +6,7 @@ This project starts as a public static GitHub Pages app. Early MVPs keep export 
 
 ## Status
 
-MVP 1 is in place: the GitHub Pages root now acts as the Trello Power-Up connector, and `popup.html` is the shell opened from the list action.
+MVP 2 is in place: the GitHub Pages root acts as the Trello Power-Up connector, and `popup.html` now downloads the selected list as JSON from the Power-Up popup.
 
 ## Implementation Plan
 
