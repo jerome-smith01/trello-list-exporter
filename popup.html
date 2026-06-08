@@ -87,6 +87,20 @@
         font-size: 1.15rem;
         line-height: 1.2;
         letter-spacing: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .version {
+        font-size: 0.65rem;
+        font-weight: 400;
+        color: var(--muted);
+        background: var(--panel-2);
+        padding: 2px 6px;
+        border-radius: 3px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
       }
 
       .subtle {
@@ -225,7 +239,7 @@
     <main>
       <section class="panel shell" id="app">
         <div class="header">
-          <h1 id="title">Export list</h1>
+          <h1 id="title">Export list <span class="version" id="version">v2</span></h1>
           <p class="subtle" id="subtitle">Export controls will be added in MVP 2.</p>
         </div>
         <div class="meta" aria-live="polite">
