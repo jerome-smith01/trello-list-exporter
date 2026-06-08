@@ -143,6 +143,10 @@
     }
 
     const t = window.TrelloPowerUp.iframe();
+    t.render(function () {
+      t.sizeTo(app).done();
+    });
+
     const listId = t.arg('listId', 'Unavailable');
     const listNameArg = t.arg('listName', 'Selected list');
     const boardNameArg = t.arg('boardName', 'Selected board');
