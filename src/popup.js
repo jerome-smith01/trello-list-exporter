@@ -5,11 +5,11 @@
   const subtitle = document.getElementById('subtitle');
   const boardNameEl = document.getElementById('board-name');
   const listNameEl = document.getElementById('list-name');
-  const listIdEl = document.getElementById('list-id');
   const cardCountEl = document.getElementById('card-count');
   const downloadButton = document.getElementById('download-json-button');
   const downloadCSVButton = document.getElementById('download-csv-button');
   const downloadMarkdownButton = document.getElementById('download-markdown-button');
+  const copyListIdButton = document.getElementById('copy-list-id-button');
   const closeButton = document.getElementById('close-button');
   const statusEl = document.getElementById('status');
   const visibleOnlyCheckbox = document.getElementById('visible-only-checkbox');
@@ -207,7 +207,6 @@
       'Due Date',
       'Due Completion',
       'Card URL',
-      'Position',
       'Last Activity',
       'Attachments',
     ];
@@ -253,7 +252,6 @@
         card.due || '',
         card.dueComplete ? 'Yes' : 'No',
         card.url || '',
-        card.pos || '',
         card.dateLastActivity || '',
         attachments,
       ];
@@ -462,8 +460,9 @@
     title.textContent = `Export ${effectiveListName}`;
     subtitle.textContent = 'Download the selected list as JSON.';
     boardNameEl.textContent = effectiveBoardName;
+    boardNameEl.title = effectiveBoardName;
     listNameEl.textContent = effectiveListName;
-    listIdEl.textContent = effectiveListId;
+    listNameEl.title = effectiveListName;
     cardCountEl.textContent = 'Loading…';
 
     setStatus('Fetching list details…');
@@ -481,7 +480,19 @@
     );
 
     boardNameEl.textContent = resolvedBoardName;
+    boardNameEl.title = resolvedBoardName;
     listNameEl.textContent = resolvedListName;
+    listNameEl.title = resolvedListName;
+
+    // Wire up Copy List ID button
+    copyListIdButton.disabled = false;
+    copyListIdButton.addEventListener('click', function () {
+      navigator.clipboard.writeText(effectiveListId).then(function () {
+        var original = copyListIdButton.textContent.trim();
+        copyListIdButton.textContent = 'Copied!';
+        setTimeout(function () { copyListIdButton.textContent = original; }, 1500);
+      });
+    });
     
     if (!list) {
       setStatusError('Error: Could not load list data from Trello.');
@@ -590,6 +601,7 @@
     setupTooltip(document.querySelector('#download-json-button + .tooltip-trigger'));
     setupTooltip(document.querySelector('#download-csv-button + .tooltip-trigger'));
     setupTooltip(document.querySelector('#download-markdown-button + .tooltip-trigger'));
+    setupTooltip(document.querySelector('#copy-list-id-button + .tooltip-trigger'));
 
     // Close tooltip when clicking elsewhere
     document.addEventListener('click', function (e) {

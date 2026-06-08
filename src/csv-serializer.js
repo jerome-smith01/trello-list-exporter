@@ -42,7 +42,6 @@ function createCSVContent(board, list, cards) {
     'Due Date',
     'Due Completion',
     'Card URL',
-    'Position',
     'Last Activity',
   ];
 
@@ -75,7 +74,6 @@ function createCSVContent(board, list, cards) {
       card.due || '',
       card.dueComplete ? 'Yes' : 'No',
       card.url || '',
-      card.pos || '',
       card.dateLastActivity || '',
     ];
 

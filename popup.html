@@ -111,34 +111,29 @@
 
       .meta {
         display: grid;
-        gap: 8px;
+        grid-template-columns: auto 1fr;
+        column-gap: 12px;
+        row-gap: 8px;
         padding: 12px;
         border: 1px solid var(--border);
         border-radius: 6px;
         background: var(--panel-2);
       }
 
-      .meta-row {
-        display: flex;
-        gap: 8px;
-        justify-content: space-between;
-        align-items: flex-start;
-        flex-wrap: wrap;
-      }
-
       .label {
         color: var(--muted);
         font-size: 0.84rem;
-        flex: 1 1 50%;
-        min-width: 0;
+        white-space: nowrap;
+        align-self: center;
       }
 
       .value {
         text-align: right;
         font-size: 0.94rem;
         font-weight: 600;
-        word-break: break-word;
-        flex: 1 1 40%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         min-width: 0;
       }
 
@@ -361,22 +356,12 @@
           <p class="subtle" id="subtitle">Export controls will be added in MVP 2.</p>
         </div>
         <div class="meta" aria-live="polite">
-          <div class="meta-row">
-            <span class="label">Board</span>
-            <span class="value" id="board-name">Loading</span>
-          </div>
-          <div class="meta-row">
-            <span class="label">List</span>
-            <span class="value" id="list-name">Loading</span>
-          </div>
-          <div class="meta-row">
-            <span class="label">Cards</span>
-            <span class="value" id="card-count">—</span>
-          </div>
-          <div class="meta-row">
-            <span class="label">List ID</span>
-            <span class="value" id="list-id">Loading</span>
-          </div>
+          <span class="label">Board</span>
+          <span class="value" id="board-name" title="">Loading</span>
+          <span class="label">List</span>
+          <span class="value" id="list-name" title="">Loading</span>
+          <span class="label">Cards</span>
+          <span class="value" id="card-count">—</span>
         </div>
         <div class="filter-options">
           <input type="checkbox" id="visible-only-checkbox" checked>
@@ -403,6 +388,13 @@
             </button>
             <span class="tooltip-trigger" role="button" aria-label="Markdown export info" tabindex="0">i</span>
             <div class="tooltip">Export as Markdown for sharing with AI tools and development workflows.</div>
+          </div>
+          <div class="button-wrapper">
+            <button class="button" id="copy-list-id-button" type="button" disabled>
+              Copy List ID
+            </button>
+            <span class="tooltip-trigger" role="button" aria-label="Copy List ID info" tabindex="0">i</span>
+            <div class="tooltip">Copies the internal Trello List ID to your clipboard.</div>
           </div>
         </div>
         <div class="footer">
