@@ -2,13 +2,11 @@
   const app = document.getElementById('app');
   const fallback = document.getElementById('fallback');
   const title = document.getElementById('title');
-  const subtitle = document.getElementById('subtitle');
   const cardCountEl = document.getElementById('card-count');
   const downloadButton = document.getElementById('download-json-button');
   const downloadCSVButton = document.getElementById('download-csv-button');
   const downloadMarkdownButton = document.getElementById('download-markdown-button');
   const closeButton = document.getElementById('close-button');
-  const statusEl = document.getElementById('status');
 
   function setFallback(message) {
     document.body.classList.add('no-trello');
@@ -19,27 +17,13 @@
     return value && String(value).trim() ? value : fallbackValue;
   }
 
-  function setStatus(message) {
-    statusEl.textContent = message;
-  }
+  function setStatus(message) {}
 
-  function setStatusLoading(message) {
-    statusEl.textContent = message;
-    statusEl.className = 'status loading';
-  }
+  function setStatusLoading(message) {}
 
-  function setStatusSuccess(message) {
-    statusEl.textContent = message;
-    statusEl.className = 'status success';
-    setTimeout(function () {
-      statusEl.className = 'status';
-    }, 2500);
-  }
+  function setStatusSuccess(message) {}
 
-  function setStatusError(message) {
-    statusEl.textContent = message;
-    statusEl.className = 'status error';
-  }
+  function setStatusError(message) {}
 
   function safeFilenameComponent(value) {
     return String(value || '')
@@ -422,7 +406,7 @@
 
     const t = window.TrelloPowerUp.iframe();
     t.render(function () {
-      t.sizeTo(app).done();
+      t.sizeTo(document.body).done();
     });
 
     const listId = t.arg('listId', 'Unavailable');
@@ -454,7 +438,6 @@
     );
 
     title.textContent = `Export ${effectiveListName}`;
-    subtitle.textContent = 'Download the selected list as JSON.';
     cardCountEl.textContent = 'Loading…';
 
     setStatus('Fetching list details…');
@@ -582,7 +565,7 @@
       });
     });
 
-    await t.sizeTo(app);
+    await t.sizeTo(document.body);
   }
 
   if (document.readyState === 'loading') {

@@ -44,11 +44,11 @@
       html,
       body {
         min-width: 0;
+        overflow: hidden;
       }
 
       body {
         margin: 0;
-        min-height: 100vh;
         background: var(--bg);
         color: var(--text);
         font-family:
@@ -128,6 +128,7 @@
         text-align: left;
         min-width: 0;
         cursor: pointer;
+        transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
       }
 
       .button[disabled] {
@@ -140,14 +141,41 @@
         background: rgba(12, 102, 228, 0.12);
       }
 
+      .button-primary:hover:not([disabled]) {
+        background: rgba(12, 102, 228, 0.2);
+        border-color: rgba(12, 102, 228, 0.5);
+      }
+
+      .button-primary:active:not([disabled]) {
+        transform: scale(0.98);
+      }
+
       .button-warning {
         border-color: rgba(214, 0, 0, 0.25);
         background: rgba(214, 0, 0, 0.08);
       }
 
+      .button-warning:hover:not([disabled]) {
+        background: rgba(214, 0, 0, 0.15);
+        border-color: rgba(214, 0, 0, 0.4);
+      }
+
+      .button-warning:active:not([disabled]) {
+        transform: scale(0.98);
+      }
+
+      .section-title {
+        margin: 4px 0 0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
       .footer {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         gap: 12px;
         align-items: center;
         flex-wrap: wrap;
@@ -306,35 +334,33 @@
       <section class="panel shell" id="app">
         <div class="header">
           <h1 id="title">Export list <span class="version" id="version">v5</span></h1>
-          <p class="subtle" id="subtitle">Download the selected list as JSON.</p>
           <p class="subtle" id="card-count" aria-live="polite"></p>
-          <p class="visible-tip">Archived cards are excluded from exports.</p>
         </div>
         <div class="actions">
+          <h2 class="section-title">Download</h2>
           <div class="button-wrapper">
             <button class="button button-primary" id="download-json-button" type="button" disabled>
-              Download JSON
+              .JSON
             </button>
             <span class="tooltip-trigger" role="button" aria-label="JSON export info" tabindex="0">i</span>
             <div class="tooltip">Export all cards to a JSON file with full metadata.</div>
           </div>
           <div class="button-wrapper">
             <button class="button button-primary" id="download-csv-button" type="button" disabled>
-              Download CSV
+              .csv
             </button>
             <span class="tooltip-trigger" role="button" aria-label="CSV export info" tabindex="0">i</span>
             <div class="tooltip">Export all cards to a CSV file compatible with Excel.</div>
           </div>
           <div class="button-wrapper">
             <button class="button button-primary" id="download-markdown-button" type="button" disabled>
-              Download Markdown
+              .md
             </button>
             <span class="tooltip-trigger" role="button" aria-label="Markdown export info" tabindex="0">i</span>
             <div class="tooltip">Export as Markdown for sharing with AI tools and development workflows.</div>
           </div>
         </div>
         <div class="footer">
-          <div class="status" id="status">Waiting for Trello data.</div>
           <button class="button button-warning" id="close-button" type="button">
             Close
           </button>
