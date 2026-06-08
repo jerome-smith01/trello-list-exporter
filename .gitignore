@@ -1,0 +1,24 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+.cache/
+
+# Local environment/secrets
+.env
+.env.*
+*.local
+
+# Trello/private exports
+exports/
+*.trello.json
+*.trello.csv
+*.handoff.md
