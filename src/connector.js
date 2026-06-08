@@ -13,20 +13,18 @@
     fallback.textContent = message;
   }
 
-  function popupCallback(t) {
-    return async function () {
-      const context = t.getContext();
-      const [list, board] = await Promise.all([
-        t.list('name', 'id').catch(function () {
-          return null;
-        }),
-        t.board('name', 'id').catch(function () {
-          return null;
-        }),
-      ]);
-
+  function openExportPopup(t) {
+    return Promise.all([
+      t.list('name', 'id').catch(function () {
+        return null;
+      }),
+      t.board('name', 'id').catch(function () {
+        return null;
+      }),
+    ]).then(function ([list, board]) {
       const listName = (list && list.name) || 'Selected list';
       const boardName = (board && board.name) || 'Selected board';
+      const context = t.getContext();
 
       return t.popup({
         title: `Export ${listName}`,
@@ -39,7 +37,7 @@
         },
         height: 340,
       });
-    };
+    });
   }
 
   function initializePowerUp() {
@@ -54,12 +52,12 @@
         document.body.classList.remove('has-fallback');
         setStatus('List action registered', 'ok');
         capabilityCopy.textContent =
-          'The list menu action opens a popup shell. Export logic arrives in MVP 2.';
+          'The list menu action opens the export popup.';
 
         return [
           {
             text: 'Export list...',
-            callback: popupCallback(t),
+            callback: openExportPopup,
           },
         ];
       },
