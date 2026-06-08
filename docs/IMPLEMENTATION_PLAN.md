@@ -233,10 +233,12 @@ Security checklist:
 Acceptance criteria:
 
 - Checkbox labeled "Visible only" appears in the popup.
-- Unchecking filters exports all cards including archived.
-- Checking filters shows only non-archived cards.
+- Unchecking exports all cards including archived.
+- Checking exports only non-archived (open) cards.
 - All three export formats respect the filter state.
 - Card count updates to reflect filter state.
+
+> **Note:** The Trello Power-Up API does not expose the board's active filter state from within a popup iframe. `t.cards('visible')` does not reliably reflect label/member/due-date filters applied in the board view. "Visible only" therefore filters archived (closed) cards, which is the reliable and safe behaviour available via the client library.
 
 ### MVP 7: REST API Authorization Verification
 

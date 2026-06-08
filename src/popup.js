@@ -118,45 +118,32 @@
   async function resolveListCards(t) {
     let list = null;
     let cards = [];
-    let visibleCardIds = new Set();
 
     try {
       const listData = await t.list('name', 'id', 'cards', 'all');
       if (listData && Array.isArray(listData.cards)) {
         list = listData;
         cards = listData.cards;
+        return {list, cards};
       }
     } catch (error) {
       // Continue to fallback strategy.
     }
 
-    if (!list) {
-      try {
-        cards = await t.cards('all');
-        list = await t.list('name', 'id').catch(function () {
-          return null;
-        });
-        cards = Array.isArray(cards) ? cards : [];
-      } catch (error) {
-        return {list: null, cards: [], visibleCardIds};
-      }
-    }
-
     try {
-      const vCards = await t.cards('visible');
-      if (Array.isArray(vCards)) {
-        vCards.forEach(function(c) {
-          if (c && c.id) visibleCardIds.add(c.id);
-        });
+      const listMeta = await t.list('name', 'id').catch(function () { return null; });
+      const allCards = await t.cards('all');
+      list = listMeta;
+      // Safety: if t.cards('all') returns board-wide cards, restrict to this list.
+      if (listMeta && listMeta.id && Array.isArray(allCards)) {
+        cards = allCards.filter(function (c) { return c.idList === listMeta.id; });
+      } else {
+        cards = Array.isArray(allCards) ? allCards : [];
       }
-    } catch (e) {
-      // Fallback: just use closed state
-      cards.forEach(function(c) {
-        if (!c.closed) visibleCardIds.add(c.id);
-      });
+      return {list, cards};
+    } catch (error) {
+      return {list: null, cards: []};
     }
-
-    return {list, cards, visibleCardIds};
   }
 
   function createExportPayload(board, list, cards, visibleOnly) {
@@ -483,7 +470,7 @@
     downloadButton.disabled = true;
     downloadCSVButton.disabled = true;
 
-    const {list, cards, visibleCardIds} = await resolveListCards(t);
+    const {list, cards} = await resolveListCards(t);
     const resolvedListName = fillEmpty(
       (list && list.name) || effectiveListName,
       effectiveListName
@@ -501,11 +488,14 @@
       return;
     }
     
-    // Filter cards based on checkbox
+    // Filter cards based on checkbox.
+    // Note: Trello's Power-Up API does not expose the board's active filter
+    // state from within a popup iframe. "Visible only" reliably excludes
+    // archived (closed) cards, which is the behaviour the checkbox controls.
     function getExportCards() {
       if (visibleOnlyCheckbox.checked) {
         return cards.filter(function (card) {
-          return visibleCardIds.has(card.id);
+          return !card.closed;
         });
       }
       return cards;
