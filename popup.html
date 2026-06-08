@@ -233,32 +233,63 @@
 
       .button-wrapper {
         position: relative;
-        display: block;
+        display: flex;
+        align-items: center;
         width: 100%;
       }
 
       .button-wrapper .button {
         width: 100%;
+        padding-right: 42px;
+      }
+
+      .tooltip-trigger {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.35);
+        background: rgba(255,255,255,0.12);
+        color: var(--text);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .tooltip-trigger:focus {
+        outline: 2px solid rgba(12, 102, 228, 0.5);
+        outline-offset: 2px;
+      }
+
+      .tooltip-trigger:hover + .tooltip,
+      .tooltip-trigger:focus + .tooltip {
+        display: block;
       }
 
       .tooltip {
         display: none;
         position: absolute;
         bottom: calc(100% + 8px);
-        left: 0;
         right: 0;
+        min-width: 180px;
+        max-width: 260px;
         background: var(--text);
         color: var(--bg);
-        padding: 8px 10px;
-        border-radius: 4px;
+        padding: 10px 12px;
+        border-radius: 6px;
         font-size: 0.8rem;
-        line-height: 1.3;
+        line-height: 1.4;
         z-index: 10;
         white-space: normal;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
       }
 
-      .button-wrapper:hover .tooltip,
       .button-wrapper.show-tooltip .tooltip {
         display: block;
       }
@@ -355,18 +386,21 @@
             <button class="button button-primary" id="download-json-button" type="button" disabled>
               Download JSON
             </button>
+            <span class="tooltip-trigger" role="button" aria-label="JSON export info" tabindex="0">i</span>
             <div class="tooltip">Export all cards to a JSON file with full metadata.</div>
           </div>
           <div class="button-wrapper">
             <button class="button button-primary" id="download-csv-button" type="button" disabled>
               Download CSV
             </button>
+            <span class="tooltip-trigger" role="button" aria-label="CSV export info" tabindex="0">i</span>
             <div class="tooltip">Export all cards to a CSV file compatible with Excel.</div>
           </div>
           <div class="button-wrapper">
             <button class="button button-primary" id="download-markdown-button" type="button" disabled>
               Download Markdown
             </button>
+            <span class="tooltip-trigger" role="button" aria-label="Markdown export info" tabindex="0">i</span>
             <div class="tooltip">Export as Markdown for sharing with AI tools and development workflows.</div>
           </div>
         </div>

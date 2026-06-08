@@ -501,37 +501,41 @@
       t.closePopup();
     };
 
-    // Tooltip handling for mobile touch - all buttons
-    function setupTooltip(buttonElement) {
-      var wrapper = buttonElement.parentElement;
-      
-      buttonElement.addEventListener('touchstart', function (e) {
+    // Tooltip handling for mobile touch and icon trigger
+    function setupTooltip(triggerElement) {
+      var wrapper = triggerElement.parentElement;
+
+      triggerElement.addEventListener('touchstart', function (e) {
         e.preventDefault();
         var isShowing = wrapper.classList.contains('show-tooltip');
         if (isShowing) {
-          // If tooltip is visible, proceed with click
-          buttonElement.click();
           wrapper.classList.remove('show-tooltip');
         } else {
-          // Show tooltip on first tap
           wrapper.classList.add('show-tooltip');
         }
       }, { passive: false });
 
-      buttonElement.addEventListener('click', function () {
-        wrapper.classList.remove('show-tooltip');
+      triggerElement.addEventListener('click', function (e) {
+        e.stopPropagation();
+        wrapper.classList.toggle('show-tooltip');
+      });
+
+      triggerElement.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          wrapper.classList.toggle('show-tooltip');
+        }
       });
     }
-    
-    setupTooltip(downloadButton);
-    setupTooltip(downloadCSVButton);
-    setupTooltip(downloadMarkdownButton);
+
+    setupTooltip(document.querySelector('#download-json-button + .tooltip-trigger'));
+    setupTooltip(document.querySelector('#download-csv-button + .tooltip-trigger'));
+    setupTooltip(document.querySelector('#download-markdown-button + .tooltip-trigger'));
 
     // Close tooltip when clicking elsewhere
     document.addEventListener('click', function (e) {
-      var buttons = [downloadButton, downloadCSVButton, downloadMarkdownButton];
-      buttons.forEach(function (btn) {
-        var wrapper = btn.parentElement;
+      var wrappers = document.querySelectorAll('.button-wrapper');
+      wrappers.forEach(function (wrapper) {
         if (!wrapper.contains(e.target)) {
           wrapper.classList.remove('show-tooltip');
         }
