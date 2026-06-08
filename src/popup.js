@@ -3,16 +3,12 @@
   const fallback = document.getElementById('fallback');
   const title = document.getElementById('title');
   const subtitle = document.getElementById('subtitle');
-  const boardNameEl = document.getElementById('board-name');
-  const listNameEl = document.getElementById('list-name');
   const cardCountEl = document.getElementById('card-count');
   const downloadButton = document.getElementById('download-json-button');
   const downloadCSVButton = document.getElementById('download-csv-button');
   const downloadMarkdownButton = document.getElementById('download-markdown-button');
-  const copyListIdButton = document.getElementById('copy-list-id-button');
   const closeButton = document.getElementById('close-button');
   const statusEl = document.getElementById('status');
-  const visibleOnlyCheckbox = document.getElementById('visible-only-checkbox');
 
   function setFallback(message) {
     document.body.classList.add('no-trello');
@@ -459,10 +455,6 @@
 
     title.textContent = `Export ${effectiveListName}`;
     subtitle.textContent = 'Download the selected list as JSON.';
-    boardNameEl.textContent = effectiveBoardName;
-    boardNameEl.title = effectiveBoardName;
-    listNameEl.textContent = effectiveListName;
-    listNameEl.title = effectiveListName;
     cardCountEl.textContent = 'Loading…';
 
     setStatus('Fetching list details…');
@@ -479,50 +471,29 @@
       effectiveBoardName
     );
 
-    boardNameEl.textContent = resolvedBoardName;
-    boardNameEl.title = resolvedBoardName;
-    listNameEl.textContent = resolvedListName;
-    listNameEl.title = resolvedListName;
-
-    // Wire up Copy List ID button
-    copyListIdButton.disabled = false;
-    copyListIdButton.addEventListener('click', function () {
-      navigator.clipboard.writeText(effectiveListId).then(function () {
-        var original = copyListIdButton.textContent.trim();
-        copyListIdButton.textContent = 'Copied!';
-        setTimeout(function () { copyListIdButton.textContent = original; }, 1500);
-      });
-    });
+    title.textContent = `Export ${resolvedListName}`;
     
     if (!list) {
       setStatusError('Error: Could not load list data from Trello.');
       return;
     }
     
-    // Filter cards based on checkbox.
-    // Note: Trello's Power-Up API does not expose the board's active filter
-    // state from within a popup iframe. "Visible only" reliably excludes
-    // archived (closed) cards, which is the behaviour the checkbox controls.
+    // Always exclude archived (closed) cards — visible-only is the only export mode.
     function getExportCards() {
-      if (visibleOnlyCheckbox.checked) {
-        return cards.filter(function (card) {
-          return !card.closed;
-        });
-      }
-      return cards;
+      return cards.filter(function (card) { return !card.closed; });
     }
-    
+
     function updateCardCount() {
       const exportCards = getExportCards();
       const totalCards = cards.length;
       const archivedCount = totalCards - exportCards.length;
-      
-      if (visibleOnlyCheckbox.checked && archivedCount > 0) {
-        cardCountEl.textContent = String(exportCards.length) + ' (' + String(totalCards) + ' total)';
+
+      if (archivedCount > 0) {
+        cardCountEl.textContent = `${exportCards.length} of ${totalCards} cards`;
       } else {
-        cardCountEl.textContent = String(totalCards);
+        cardCountEl.textContent = `${totalCards} card${totalCards === 1 ? '' : 's'}`;
       }
-      
+
       if (exportCards.length === 0) {
         setStatus('No cards to export.');
         downloadButton.disabled = true;
@@ -535,13 +506,12 @@
         downloadMarkdownButton.disabled = false;
       }
     }
-    
-    visibleOnlyCheckbox.addEventListener('change', updateCardCount);
+
     updateCardCount();
 
     downloadButton.onclick = function () {
       const exportCards = getExportCards();
-      const payload = createExportPayload(resolvedBoard || {}, list, exportCards, visibleOnlyCheckbox.checked);
+      const payload = createExportPayload(resolvedBoard || {}, list, exportCards, true);
       downloadJSON(payload);
     };
 
@@ -553,7 +523,7 @@
 
     downloadMarkdownButton.onclick = function () {
       const exportCards = getExportCards();
-      const markdownContent = createHandoffMarkdown(resolvedBoard || {}, list, exportCards, cards.length, visibleOnlyCheckbox.checked);
+      const markdownContent = createHandoffMarkdown(resolvedBoard || {}, list, exportCards, cards.length, true);
       const filename = buildHandoffFilename(resolvedBoardName, resolvedListName);
       const blob = new Blob([markdownContent], {type: 'text/markdown;charset=utf-8'});
       const url = URL.createObjectURL(blob);
@@ -601,7 +571,6 @@
     setupTooltip(document.querySelector('#download-json-button + .tooltip-trigger'));
     setupTooltip(document.querySelector('#download-csv-button + .tooltip-trigger'));
     setupTooltip(document.querySelector('#download-markdown-button + .tooltip-trigger'));
-    setupTooltip(document.querySelector('#copy-list-id-button + .tooltip-trigger'));
 
     // Close tooltip when clicking elsewhere
     document.addEventListener('click', function (e) {

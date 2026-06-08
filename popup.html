@@ -109,33 +109,6 @@
         font-size: 0.92rem;
       }
 
-      .meta {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        column-gap: 12px;
-        row-gap: 8px;
-        padding: 12px;
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        background: var(--panel-2);
-      }
-
-      .label {
-        color: var(--muted);
-        font-size: 0.84rem;
-        white-space: nowrap;
-        align-self: center;
-      }
-
-      .value {
-        text-align: right;
-        font-size: 0.94rem;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        min-width: 0;
-      }
 
       .actions {
         display: grid;
@@ -290,26 +263,10 @@
         display: block;
       }
 
-      .filter-options {
-        padding: 10px 12px;
-        background: var(--panel-2);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .filter-options input[type="checkbox"] {
-        cursor: pointer;
-        accent-color: var(--accent);
-      }
-
-      .filter-options label {
-        cursor: pointer;
-        font-size: 0.94rem;
-        flex: 1;
+      .visible-tip {
         margin: 0;
+        font-size: 0.8rem;
+        color: var(--muted);
       }
 
       .fallback {
@@ -327,10 +284,6 @@
       @media (max-width: 380px) {
         .header h1 {
           font-size: 1.05rem;
-        }
-
-        .meta {
-          padding: 10px;
         }
 
         .footer {
@@ -353,19 +306,9 @@
       <section class="panel shell" id="app">
         <div class="header">
           <h1 id="title">Export list <span class="version" id="version">v5</span></h1>
-          <p class="subtle" id="subtitle">Export controls will be added in MVP 2.</p>
-        </div>
-        <div class="meta" aria-live="polite">
-          <span class="label">Board</span>
-          <span class="value" id="board-name" title="">Loading</span>
-          <span class="label">List</span>
-          <span class="value" id="list-name" title="">Loading</span>
-          <span class="label">Cards</span>
-          <span class="value" id="card-count">—</span>
-        </div>
-        <div class="filter-options">
-          <input type="checkbox" id="visible-only-checkbox" checked>
-          <label for="visible-only-checkbox" title="Includes only the cards shown on the screen.">Visible only</label>
+          <p class="subtle" id="subtitle">Download the selected list as JSON.</p>
+          <p class="subtle" id="card-count" aria-live="polite"></p>
+          <p class="visible-tip">Archived cards are excluded from exports.</p>
         </div>
         <div class="actions">
           <div class="button-wrapper">
@@ -388,13 +331,6 @@
             </button>
             <span class="tooltip-trigger" role="button" aria-label="Markdown export info" tabindex="0">i</span>
             <div class="tooltip">Export as Markdown for sharing with AI tools and development workflows.</div>
-          </div>
-          <div class="button-wrapper">
-            <button class="button" id="copy-list-id-button" type="button" disabled>
-              Copy List ID
-            </button>
-            <span class="tooltip-trigger" role="button" aria-label="Copy List ID info" tabindex="0">i</span>
-            <div class="tooltip">Copies the internal Trello List ID to your clipboard.</div>
           </div>
         </div>
         <div class="footer">
